@@ -1,0 +1,52 @@
+cv:
+  name: Airborne Cat
+  label: AI / Machine Learning
+  email: ""
+  location: ""
+  image: ""
+  summary: AI, machine learning, deep learning, NLP, mathematics, and development projects and study notes.
+
+  social_networks:
+    - network: GitHub
+      username: Airborne-cat
+
+  sections:
+    Skills:
+      - name: AI & Machine Learning
+        level: ""
+        icon: fa-solid fa-brain
+        keywords: "Python, Machine Learning, Deep Learning, NLP, LLM"
+
+      - name: Development
+        level: ""
+        icon: fa-solid fa-code
+        keywords: "Python, C, C++, Git, GitHub"
+
+    Projects:
+      - name: pymlrev2
+        summary: Python 기반 머신러닝 학습 및 실습 저장소.
+        highlights:
+          - Machine Learning
+          - Python
+
+      - name: Deep Learning from Scratch
+        summary: 딥러닝 기초 구현과 학습 내용을 정리하는 저장소.
+        highlights:
+          - Deep Learning
+          - Neural Networks
+
+      - name: Airborne-cat.github.io
+        summary: Jekyll과 al-folio를 사용해 구축한 개인 기술 블로그.
+        highlights:
+          - Jekyll
+          - GitHub Pages
+          - al-folio
+
+    Interests:
+      - name: Artificial Intelligence
+        icon: fa-solid fa-tag
+        keywords: "Machine Learning, Deep Learning, NLP, LLM"
+
+      - name: Mathematics for AI
+        icon: fa-solid fa-tag
+        keywords: "Linear Algebra, Probability, Optimization"
