@@ -44,7 +44,7 @@ jobs:
           ruby <<'RUBY'
           require 'yaml'
           path = '_config.yml'
-          config = YAML.load_file(path, aliases: true)
+          config = YAML.unsafe_load_file(path)
           config['title'] = 'Airborne Cat'
           config['first_name'] = 'Airborne'
           config['middle_name'] = ''
@@ -68,8 +68,6 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3.5'
-          bundler-cache: true
-          working-directory: al-folio
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -89,6 +87,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y imagemagick
           pip3 install --upgrade nbconvert
+          bundle config set path vendor/bundle
+          bundle install --jobs 4 --retry 3
           npm ci
           export JEKYLL_ENV=production
           bundle exec jekyll build
