@@ -1,0 +1,132 @@
+<!DOCTYPE html> <html lang="ko"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title> CS231n Lecture 3 — Regularization &amp; Optimization | Airborne Cat </title> <meta name="author" content="Airborne Cat"> <meta name="description" content="Regularization, Gradient Descent, SGD의 문제점과 Momentum·RMSProp·Adam, Learning Rate 설정을 정리합니다."> <meta name="keywords" content="AI, machine learning, deep learning, LLM, Jekyll, GitHub Pages"> <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; media-src 'self' https:; frame-src 'self' https:; connect-src 'self' https:;"> <style>
+  :root {
+    --max-content-width: 930px;
+  }
+</style> <link rel="stylesheet" href="/assets/css/tailwind.css?v=50c64c15cbb9fd1ce6056fdb8bcb4b62"> <link defer rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tocbot@4.36.4/dist/tocbot.css" integrity="sha256-zTN0r+0OKaIv2xqeNNIYxNk0pWJ6+IqPGc1iDgVzWF0=" crossorigin="anonymous"> <link defer rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css" integrity="sha256-MVopmdyC2tYTiJ8wlktf0uh0v4NgT+vNdyVFepi7Q0c=" crossorigin="anonymous"> <link defer rel="stylesheet" href="https://cdn.jsdelivr.net/npm/academicons@1.9.5/css/academicons.min.css" integrity="sha256-SzrCOBJbGVFMahewkgjwnApaV2+av1DwMAA+/QGLyZw=" crossorigin="anonymous"> <link defer rel="stylesheet" href="https://cdn.jsdelivr.net/npm/scholar-icons@1.0.3/css/scholar-icons.css" integrity="sha256-VY3hHVj/hNX3fYG6wtbA6TcKJQl7+FthzGSyIB64klY=" crossorigin="anonymous"> <link defer rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons&amp;display=swap"> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-github.css?v=591dab5a4e56573bf4ef7fd332894c99" media="" id="highlight_theme_light"> <link rel="shortcut icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%E2%9A%9B%EF%B8%8F&lt;/text&gt;&lt;/svg&gt;"> <link rel="stylesheet" href="/assets/css/main.css?v=3116ba77db9ee1581d05bb3e86fbf7f1"> <link rel="canonical" href="https://airborne-cat.github.io/blog/2026/cs231n-lecture-3/"> <script src="/assets/js/theme.js?v=5286c3e4c334d0ecb8fc0c40ff4fa7ec"></script> <link defer rel="stylesheet" href="/assets/css/jekyll-pygments-themes-native.css?v=5847e5ed4a4568527aa6cfab446049ca" media="none" id="highlight_theme_dark"> <script>
+    initTheme();
+  </script> </head> <body class="fixed-top-nav "> <header> <nav id="navbar" class="navbar navbar-light navbar-expand-sm fixed-top" role="navigation"> <div class="container"> <a class="navbar-brand title font-weight-lighter" href="/"> Airborne Cat </a> <button class="navbar-toggler collapsed navbar-toggler-main" type="button" data-nav-toggle="navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar top-bar"></span> <span class="icon-bar middle-bar"></span> <span class="icon-bar bottom-bar"></span> </button> <div class="collapse navbar-collapse navbar-collapse-main" id="navbarNav"> <ul class="navbar-nav navbar-menu-list flex-nowrap"> <li class="nav-item "> <a class="nav-link" href="/">about </a> </li> <li class="nav-item active"> <a class="nav-link" href="/blog/">blog </a> </li> <li class="nav-item "> <a class="nav-link" href="/projects/">projects </a> </li> <li class="nav-item "> <a class="nav-link" href="/repositories/">repositories </a> </li> <li class="nav-item "> <a class="nav-link" href="/cv/">CV </a> </li> <li class="nav-item dropdown "> <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-nav-dropdown-toggle="true" aria-haspopup="true" aria-expanded="false">submenus </a> <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown"> <a class="dropdown-item " href="/books/">bookshelf</a> <div class="dropdown-divider"></div> <a class="dropdown-item " href="/blog/">blog</a> </div> </li> <li class="nav-item"> <button id="search-toggle" type="button" title="Search" aria-label="Open search"> <span class="nav-link">ctrl k <i class="fa-solid fa-magnifying-glass"></i></span> </button> </li> <li class="toggle-container"> <button id="light-toggle" type="button" title="Change theme" aria-label="Change color theme"> <i class="fa-half-sun-moon" id="light-toggle-system"></i> <i class="fa-solid fa-moon" id="light-toggle-dark"></i> <i class="fa-solid fa-sun" id="light-toggle-light"></i> </button> </li> </ul> </div> </div> </nav> <progress id="progress" value="0"> <div class="progress-container"> <span class="progress-bar"></span> </div> </progress> </header> <div class="container mt-5" role="main"> <div class="row"> <div class="col-sm-9"> <div class="post"> <header class="post-header"> <h1 class="post-title">CS231n Lecture 3 — Regularization &amp; Optimization</h1> <p class="post-meta"> Created on September 17, 2026 </p> <p class="post-tags"> <a href="/blog/2026"> <i class="fa-solid fa-calendar fa-sm"></i> 2026 </a>   ·   <a href="/blog/tag/cs231n"> <i class="fa-solid fa-hashtag fa-sm"></i> cs231n</a>   <a href="/blog/tag/regularization"> <i class="fa-solid fa-hashtag fa-sm"></i> regularization</a>   <a href="/blog/tag/optimization"> <i class="fa-solid fa-hashtag fa-sm"></i> optimization</a>   <a href="/blog/tag/sgd"> <i class="fa-solid fa-hashtag fa-sm"></i> sgd</a>   <a href="/blog/tag/adam"> <i class="fa-solid fa-hashtag fa-sm"></i> adam</a>   ·   <a href="/blog/category/cs231n"> <i class="fa-solid fa-tag fa-sm"></i> cs231n</a> </p> </header> <article class="post-content"> <div id="markdown-content"> <blockquote> <p><strong>Lecture 3 핵심 흐름</strong><br> Regularization → Optimization → Gradient Descent → SGD → Momentum / RMSProp / Adam → Learning Rate</p> </blockquote> <h2 id="1-regularization규제화">1. Regularization(규제화)</h2> <p><strong>Regularization</strong>은 모델의 일반화 능력을 확보하기 위한 기법이다.</p> <p><img src="/assets/img/cs231n/lecture-3/Pasted%20image%2020260917135335.png" alt="Regularization"></p> <h3 id="규제화-종류">규제화 종류</h3> <h4 id="1-l1-regularization">1. L1 Regularization</h4> <p><img src="/assets/img/cs231n/lecture-3/Pasted%20image%2020260917135826.png" alt="L1 Regularization"></p> <ul> <li>Weight를 0으로 보내는 방향을 선호한다.</li> <li>결과적으로 <strong>sparse한 파라미터 분포를 선호</strong>한다.</li> </ul> <h4 id="2-l2-regularization">2. L2 Regularization</h4> <p><img src="/assets/img/cs231n/lecture-3/Pasted%20image%2020260917135436.png" alt="L2 Regularization"></p> <p><img src="/assets/img/cs231n/lecture-3/Pasted%20image%2020260917135453.png" alt="L2 Regularization Example"></p> <p>모델이 위와 같은 파라미터를 가질 때 L2는 $w_2$를 선호한다.</p> <blockquote> <p><strong>핵심:</strong> 여러 feature에 weight를 분산하는 역할을 한다.</p> </blockquote> <h4 id="3-기타-regularization">3. 기타 Regularization</h4> <ul> <li>Dropout</li> <li>Normalization</li> <li>Stochastic Depth</li> <li>etc.</li> </ul> <h3 id="regularization을-사용하는-이유">Regularization을 사용하는 이유</h3> <ol> <li><strong>Overfitting 방지</strong></li> <li>Weight 값의 분포 설정</li> <li><strong>Generalization(일반화) 능력 확보</strong></li> <li>Optimization 능력 향상</li> </ol> <p>예를 들어 L2 term은 최적화 과정에서 curvature를 고려하도록 하여 지그재그 형태의 이동을 줄이는 데 연결해서 볼 수 있다.</p> <hr> <h2 id="2-optimization">2. Optimization</h2> <p>Optimization은 <strong>파라미터 값을 결정하는 과정</strong>이다.</p> <p><img src="/assets/img/cs231n/lecture-3/Pasted%20image%2020260917155046.png" alt="Optimization"></p> <p>우리가 구하고자 하는 것은 <strong>Loss 값을 최소화하는 $W$</strong>이다.</p> <h3 id="21-gradient-descent경사-하강법">2.1 Gradient Descent(경사 하강법)</h3> <p><img src="/assets/img/cs231n/lecture-3/Pasted%20image%2020260917155320.png" alt="Gradient Descent"></p> <p>Gradient Descent에서는 현재 $W$에서 loss의 gradient를 계산하고, 그 반대 방향으로 파라미터를 갱신한다.</p> <ul> <li> <strong>Learning Rate($\lambda$)</strong>: 한 번의 update에서 얼마나 이동할 것인가를 결정</li> </ul> <hr> <h3 id="22-stochastic-gradient-descentsgd">2.2 Stochastic Gradient Descent(SGD)</h3> <p>SGD는 <strong>mini-batch</strong>를 이용해 일부 데이터에 대한 gradient를 계산하고, 이를 전체 gradient의 근사값으로 사용해 파라미터를 업데이트한다.</p> <h3 id="sgd의-문제점">SGD의 문제점</h3> <h4 id="1-high-condition-number-problem조건수-문제">1. High Condition Number Problem(조건수 문제)</h4> <p><strong>Condition Number(조건수)</strong>는 가장 작은 곡률에 대한 가장 큰 곡률의 비율로 이해할 수 있다.</p> <p><img src="/assets/img/cs231n/lecture-3/Pasted%20image%2020260917171258.png" alt="Condition Number 1"></p> <p><img src="/assets/img/cs231n/lecture-3/Pasted%20image%2020260917171332.png" alt="Condition Number 2"></p> <ul> <li>함수가 얼마나 민감한지와 연결된다.</li> <li>곡률은 Hessian 행렬의 고윳값 또는 공분산 행렬의 고윳값과 연결해서 볼 수 있다.</li> <li>여기서 Hessian은 negative log likelihood에 대한 Hessian이다.</li> </ul> <p>원문 메모에서는 Hessian과 공분산 행렬의 관계를 다음 흐름으로 정리하고 있다.</p> <p><img src="/assets/img/cs231n/lecture-3/Pasted%20image%2020260917172533.png" alt="Hessian and Covariance"></p> <ol> <li>Loss 함수를 Taylor 전개한다.</li> </ol> <p><img src="/assets/img/cs231n/lecture-3/Pasted%20image%2020260917173250.png" alt="Taylor Expansion 1"></p> <p><img src="/assets/img/cs231n/lecture-3/Pasted%20image%2020260917173342.png" alt="Taylor Expansion 2"></p> <ol> <li>우도 함수를 Gaussian distribution으로 나타낸다.</li> <li>지수 부분에서 $H$와 공분산 행렬의 역행렬 관계를 확인한다.</li> <li>Curvature와 파라미터 분포의 민감도를 연결해서 해석한다.</li> </ol> <blockquote> <p><strong>결론:</strong> 조건수를 작게 만들어 파라미터 공간을 더 완만하게 만드는 것이 최적화에 유리하다.</p> </blockquote> <h4 id="2-local-minimum--saddle-point">2. Local Minimum &amp; Saddle Point</h4> <p>최적화 과정에서 Local Minimum이나 Saddle Point에 의해 진행이 어려워질 수 있다.</p> <h4 id="3-gradient-noise">3. Gradient Noise</h4> <p>SGD는 일부 mini-batch로 계산한 <strong>근사 gradient</strong>를 사용하기 때문에 gradient에 noise가 발생할 수 있다.</p> <hr> <h2 id="3-sgd-문제점-해결하기">3. SGD 문제점 해결하기</h2> <h3 id="31-momentum">3.1 Momentum</h3> <p><img src="/assets/img/cs231n/lecture-3/Pasted%20image%2020260917175330.png" alt="Momentum"></p> <p>Momentum은 <strong>gradient update의 관성을 유지</strong>한다.</p> <ul> <li>update 방향의 공명을 줄임</li> <li>gradient noise를 평균화하는 효과</li> </ul> <h3 id="32-rmsprop">3.2 RMSProp</h3> <p>RMSProp은 gradient의 크기에 따라 <strong>step size를 조절</strong>한다.</p> <ul> <li>Gradient가 크면 learning rate를 낮춤</li> <li>Gradient가 작으면 learning rate를 높임</li> <li><strong>Steep direction은 억제하고 flat direction은 가속</strong></li> </ul> <h3 id="33-adam">3.3 Adam</h3> <p>Adam은 <strong>Momentum + RMSProp</strong>의 아이디어를 결합한 optimizer로 볼 수 있다.</p> <hr> <h2 id="4-learning-rate-설정">4. Learning Rate 설정</h2> <p>Saddle Point나 Local Minimum 문제를 완화하면서 학습 속도를 확보하기 위해, learning rate를 <strong>초기에는 크게 설정하고 학습이 진행될수록 점차 줄여나가는 방식</strong>을 사용할 수 있다.</p> <hr> <h2 id="summary">Summary</h2> <ul> <li>Regularization은 overfitting을 줄이고 generalization을 확보하는 데 사용된다.</li> <li>L1은 sparse한 weight를, L2는 여러 feature에 분산된 weight를 선호한다.</li> <li>Optimization의 목표는 loss를 최소화하는 파라미터 $W$를 찾는 것이다.</li> <li>SGD에는 high condition number, local minimum/saddle point, gradient noise 등의 문제가 있다.</li> <li>Momentum은 update의 관성을 이용하고, RMSProp은 gradient 크기에 따라 step size를 조절한다.</li> <li>Adam은 Momentum과 RMSProp의 아이디어를 결합한다.</li> <li>Learning rate는 학습 초기에 크게 두고 이후 점차 감소시키는 전략을 사용할 수 있다.</li> </ul> </div> </article> </div> </div> <div class="col-sm-3"> <nav id="toc-sidebar" class="sticky-top toc toc-sidebar" aria-label="Table of contents" data-toc-collapse="auto" data-toc-collapse-depth=""></nav> </div> </div> </div> <footer class="fixed-bottom" role="contentinfo"> <div class="container mt-0"> © Copyright 2026 Airborne Cat. Powered by <a href="https://jekyllrb.com/" target="_blank" rel="external nofollow noopener">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio" rel="external nofollow noopener" target="_blank">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank" rel="external nofollow noopener">GitHub Pages</a>. Photos from <a href="https://unsplash.com" target="_blank" rel="external nofollow noopener">Unsplash</a>. </div> </footer> <script>
+  window.alFolio = {
+    compatBootstrap: false
+  };
+</script> <script src="/assets/js/nav-toggle.js?v=141bd79a73ebc0f0b6ea58e440ae79fc"></script> <script defer src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/imagesloaded@5.0.0/imagesloaded.pkgd.min.js" integrity="sha256-htrLFfZJ6v5udOG+3kNLINIKh2gvoKqwEhHYfTTMICc=" crossorigin="anonymous"></script> <script defer src="/assets/js/masonry.js?v=e49affc7bd2646f6acdad1dbe02c2359" type="text/javascript"></script> <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script> <script src="/assets/al_math/js/mathjax-setup.js"></script> <script src="/assets/js/tooltips-setup.js?v=fe487e99db6c43751e6e7bdb2d6a0611"></script> <script defer src="https://cdn.jsdelivr.net/npm/tocbot@4.36.4/dist/tocbot.min.js" integrity="sha256-lo/r+jQ81wWrxdIiiiEEd538z4+dTJTt+leOuAS7GCw=" crossorigin="anonymous"></script> <script src="/assets/js/no_defer.js?v=53b1b1a645525975c963ce8bf8bfefcf"></script> <script defer src="/assets/js/common.js?v=87baac90f765f2f3362dcf6aaf312a8a"></script> <script defer src="/assets/js/copy_code.js?v=c8a01c11a92744d44b093fc3bda915df" type="text/javascript"></script> <script defer src="/assets/js/jupyter_new_tab.js?v=896d254890d9b47f0281f63bfccf0dee"></script> <script async src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script> <script async src="https://badge.dimensions.ai/badge.js"></script> <script defer src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous"></script> <script defer src="/assets/al_img_tools/js/zoom.js"></script> <script defer src="/assets/js/progress-bar.js?v=499464c5c63ced6cf7ad62509f1e2610" type="text/javascript"></script> <script src="https://cdn.jsdelivr.net/npm/vanilla-back-to-top@7.2.1/dist/vanilla-back-to-top.min.js" integrity="sha256-uMJJ3EoTyfRBoTbR+lrfu1uRQ87RZG8AR3cVNuQVeFg=" crossorigin="anonymous"></script> <script>
+    addBackToTop();
+  </script> <script type="module" src="/assets/al_search/js/search/ninja-keys.min.js"></script> <ninja-keys hidebreadcrumbs noautoloadmdicons placeholder="Type to start searching"></ninja-keys> <script src="/assets/al_search/js/search-setup.js"></script> <script>
+// get the ninja-keys element
+const ninja = document.querySelector('ninja-keys');
+
+// add the home and posts menu items
+ninja.data = [{
+    id: "nav-about",
+    title: "about",
+    section: "Navigation",
+    handler: () => {
+      window.location.href = "/";
+    },
+  },{id: "nav-blog",
+          title: "blog",
+          description: "",
+          section: "Navigation",
+          handler: () => {
+            window.location.href = "/blog/";
+          },
+        },{id: "nav-projects",
+          title: "projects",
+          description: "A growing collection of your cool projects.",
+          section: "Navigation",
+          handler: () => {
+            window.location.href = "/projects/";
+          },
+        },{id: "nav-repositories",
+          title: "repositories",
+          description: "Airborne-cat의 공개 GitHub 저장소입니다.",
+          section: "Navigation",
+          handler: () => {
+            window.location.href = "/repositories/";
+          },
+        },{id: "nav-cv",
+          title: "CV",
+          description: "AI, machine learning, and development profile.",
+          section: "Navigation",
+          handler: () => {
+            window.location.href = "/cv/";
+          },
+        },{id: "dropdown-bookshelf",
+              title: "bookshelf",
+              description: "",
+              section: "Dropdown",
+              handler: () => {
+                window.location.href = "/books/";
+              },
+            },{id: "dropdown-blog",
+              title: "blog",
+              description: "",
+              section: "Dropdown",
+              handler: () => {
+                window.location.href = "/blog/";
+              },
+            },{id: "post-cs231n-lecture-3-regularization-amp-optimization",
+        
+          title: "CS231n Lecture 3 — Regularization &amp; Optimization",
+        
+        description: "Regularization, Gradient Descent, SGD의 문제점과 Momentum·RMSProp·Adam, Learning Rate 설정을 정리합니다.",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/blog/2026/cs231n-lecture-3/";
+          
+        },
+      },{id: "post-cs231n-lecture-2-image-classification-amp-linear-classifiers",
+        
+          title: "CS231n Lecture 2 — Image Classification &amp; Linear Classifiers",
+        
+        description: "Image Classification의 기본 개념부터 KNN, Linear Classifier, Validation, Softmax와 Cross-Entropy Loss까지 정리합니다.",
+        section: "Posts",
+        handler: () => {
+          
+            window.location.href = "/blog/2026/cs231n-lecture-2/";
+          
+        },
+      },{id: "books-the-godfather",
+          title: 'The Godfather',
+          description: "",
+          section: "Books",handler: () => {
+              window.location.href = "/books/the_godfather/";
+            },},{id: "teachings-data-science-fundamentals",
+          title: 'Data Science Fundamentals',
+          description: "This course covers the foundational aspects of data science, including data collection, cleaning, analysis, and visualization. Students will learn practical skills for working with real-world datasets.",
+          section: "Teachings",handler: () => {
+              window.location.href = "/teachings/data-science-fundamentals/";
+            },},{id: "teachings-introduction-to-machine-learning",
+          title: 'Introduction to Machine Learning',
+          description: "This course provides an introduction to machine learning concepts, algorithms, and applications. Students will learn about supervised and unsupervised learning, model evaluation, and practical implementations.",
+          section: "Teachings",handler: () => {
+              window.location.href = "/teachings/introduction-to-machine-learning/";
+            },},{
+      id: 'light-theme',
+      title: 'Change theme to light',
+      description: 'Change the theme of the site to Light',
+      section: 'Theme',
+      handler: () => {
+        setThemeSetting("light");
+      },
+    },
+    {
+      id: 'dark-theme',
+      title: 'Change theme to dark',
+      description: 'Change the theme of the site to Dark',
+      section: 'Theme',
+      handler: () => {
+        setThemeSetting("dark");
+      },
+    },
+    {
+      id: 'system-theme',
+      title: 'Use system default theme',
+      description: 'Change the theme of the site to System Default',
+      section: 'Theme',
+      handler: () => {
+        setThemeSetting("system");
+      },
+    },];
+
+</script> <script src="/assets/al_search/js/shortcut-key.js"></script> </body> </html>
