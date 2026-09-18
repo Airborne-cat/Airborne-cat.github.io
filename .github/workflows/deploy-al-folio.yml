@@ -1,0 +1,104 @@
+name: Deploy al-folio site
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout site content
+        uses: actions/checkout@v4
+        with:
+          path: user-site
+
+      - name: Checkout pinned al-folio starter
+        uses: actions/checkout@v4
+        with:
+          repository: alshedivat/al-folio
+          ref: 8ec1f3608d997491e0206c4e7a9368547a5ef255
+          path: al-folio
+
+      - name: Apply Airborne-cat content and settings
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf al-folio/_posts al-folio/_projects al-folio/_news
+          mkdir -p al-folio/_posts al-folio/_projects al-folio/_news
+
+          if [ -d user-site/_posts ]; then cp -a user-site/_posts/. al-folio/_posts/; fi
+          if [ -d user-site/_projects ]; then cp -a user-site/_projects/. al-folio/_projects/; fi
+          if [ -d user-site/_news ]; then cp -a user-site/_news/. al-folio/_news/; fi
+          if [ -d user-site/al-folio-overrides/_pages ]; then cp -a user-site/al-folio-overrides/_pages/. al-folio/_pages/; fi
+          if [ -d user-site/al-folio-overrides/_data ]; then cp -a user-site/al-folio-overrides/_data/. al-folio/_data/; fi
+          if [ -d user-site/assets ]; then cp -a user-site/assets/. al-folio/assets/; fi
+
+          cd al-folio
+          ruby <<'RUBY'
+          require 'yaml'
+          path = '_config.yml'
+          config = YAML.unsafe_load_file(path)
+          config['title'] = 'Airborne Cat'
+          config['first_name'] = 'Airborne'
+          config['middle_name'] = ''
+          config['last_name'] = 'Cat'
+          config['description'] = 'AI, machine learning, mathematics, and development notes.'
+          config['keywords'] = 'AI, machine learning, deep learning, LLM, Jekyll, GitHub Pages'
+          config['lang'] = 'ko'
+          config['url'] = 'https://Airborne-cat.github.io'
+          config['baseurl'] = ''
+          config['blog_name'] = 'Airborne Cat Blog'
+          config['blog_description'] = 'AI · ML · Mathematics · Development'
+          config['external_sources'] = []
+          config['display_tags'] = ['AI', 'machine-learning', 'deep-learning', 'NLP', 'LLM', 'math']
+          config['display_categories'] = ['AI', 'ML', 'NLP', 'Math', 'Projects']
+          config['giscus'] ||= {}
+          config['giscus']['repo'] = 'Airborne-cat/Airborne-cat.github.io'
+          File.write(path, YAML.dump(config))
+          RUBY
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3.5'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: al-folio/package-lock.json
+
+      - name: Build al-folio
+        working-directory: al-folio
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+          pip3 install --upgrade nbconvert
+          bundle config set path vendor/bundle
+          bundle install --jobs 4 --retry 3
+          npm ci
+          export JEKYLL_ENV=production
+          bundle exec jekyll build
+          npm install -g purgecss
+          purgecss -c purgecss.config.js
+
+      - name: Deploy to gh-pages
+        if: github.event_name != 'pull_request'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: al-folio/_site
+          clean: true
