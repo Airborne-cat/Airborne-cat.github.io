@@ -38,6 +38,12 @@ jobs:
           if [ -d al-folio-overrides/_data ]; then cp -a al-folio-overrides/_data/. al-folio/_data/; fi
           if [ -d assets ]; then cp -a assets/. al-folio/assets/; fi
 
+          # Keep Google Search Console verification files in the published site.
+          for verification_file in google*.html; do
+            [ -f "$verification_file" ] || continue
+            cp "$verification_file" al-folio/
+          done
+
           cd al-folio
           ruby <<'RUBY'
           require 'yaml'
@@ -50,7 +56,7 @@ jobs:
           config['description'] = 'AI, machine learning, mathematics, and development notes.'
           config['keywords'] = 'AI, machine learning, deep learning, LLM, Jekyll, GitHub Pages'
           config['lang'] = 'ko'
-          config['url'] = 'https://Airborne-cat.github.io'
+          config['url'] = 'https://airborne-cat.github.io'
           config['baseurl'] = ''
           config['blog_name'] = 'Airborne Cat Blog'
           config['blog_description'] = 'AI · ML · Mathematics · Development'
