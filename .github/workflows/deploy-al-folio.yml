@@ -53,7 +53,7 @@ jobs:
           config['first_name'] = 'Airborne'
           config['middle_name'] = ''
           config['last_name'] = 'Cat'
-          config['description'] = 'AI, machine learning, mathematics, and development notes.'
+          config['description'] = '인공지능, 머신러닝, 딥러닝, NLP/LLM, CS231n과 수학을 공부하며 수식·코드·실험을 정리하는 Airborne Cat의 기술 블로그입니다.'
           config['keywords'] = 'AI, machine learning, deep learning, LLM, Jekyll, GitHub Pages'
           config['lang'] = 'ko'
           config['url'] = 'https://airborne-cat.github.io'
@@ -98,6 +98,44 @@ jobs:
           bundle exec jekyll build
           npm install -g purgecss
           purgecss -c purgecss.config.js
+
+      - name: Validate search indexing files and remove starter URLs from sitemap
+        working-directory: al-folio
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          site = Path('_site')
+          namespace = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+          ET.register_namespace('', namespace['s'])
+          sitemap = site / 'sitemap.xml'
+          tree = ET.parse(sitemap)
+          root = tree.getroot()
+          base = 'https://airborne-cat.github.io'
+          starter_paths = ('/books/', '/teachings/', '/_pages/dropdown/',
+                           '/news/', '/plugins/', '/projects/')
+          for entry in list(root):
+              loc = entry.find('s:loc', namespace)
+              if loc is None or not loc.text:
+                  raise ValueError('Sitemap entry is missing its URL')
+              url = loc.text
+              if not url.startswith(base + '/'):
+                  raise ValueError(f'Unexpected sitemap URL: {url}')
+              path = url[len(base):]
+              if path.startswith(starter_paths) or path.startswith('/google'):
+                  root.remove(entry)
+          tree.write(sitemap, encoding='utf-8', xml_declaration=True)
+          urls = [entry.find('s:loc', namespace).text for entry in root]
+          assert base + '/' in urls, 'Homepage is missing from sitemap'
+          assert base + '/blog/' in urls, 'Blog index is missing from sitemap'
+          assert any('/blog/2026/cs231n-lecture-' in url for url in urls), 'Posts are missing'
+          robots = (site / 'robots.txt').read_text()
+          assert f'Sitemap: {base}/sitemap.xml' in robots
+          for verification in Path('.').glob('google*.html'):
+              assert (site / verification.name).read_bytes() == verification.read_bytes()
+          print(f'Validated sitemap ({len(urls)} URLs), robots.txt and Google verification files')
+          PY
 
       - name: Deploy to gh-pages
         if: github.event_name != 'pull_request'
