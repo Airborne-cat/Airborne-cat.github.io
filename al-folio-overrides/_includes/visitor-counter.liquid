@@ -1,0 +1,13 @@
+{% if site.visitor_counter %}
+<section class="visitor-counter" aria-label="블로그 방문자 통계">
+  <div class="visitor-counter__stats" aria-live="polite" aria-atomic="true">
+    <span>오늘 방문자 <strong id="busuanzi_today_uv">—</strong><span>명</span></span>
+    <span>누적 방문자 <strong id="busuanzi_site_uv">—</strong><span>명</span></span>
+  </div>
+  <p class="visitor-counter__note" id="visitor-counter-status">위젯 설치 이후 집계 · Busuanzi</p>
+  <noscript>방문자 통계를 보려면 JavaScript를 활성화해 주세요.</noscript>
+</section>
+<link rel="stylesheet" href="{{ '/assets/css/visitor-counter.css' | relative_url | bust_file_cache }}">
+<script defer src="{{ '/assets/js/visitor-counter.js' | relative_url | bust_file_cache }}"></script>
+<script defer src="https://cdn.busuanzi.cc/busuanzi/3.6.9/busuanzi.min.js"></script>
+{% endif %}

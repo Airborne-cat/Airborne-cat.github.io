@@ -1,0 +1,5 @@
+.visitor-counter { margin: 0 0 1rem; font-size: .9rem; }
+.visitor-counter__stats { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.8rem; }
+.visitor-counter__stats > span { display: inline-flex; align-items: baseline; gap: .4rem; }
+.visitor-counter__stats strong { color: var(--global-theme-color); font-size: 1.2rem; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 1ch; }
+.visitor-counter__note { margin: .3rem 0 0; font-size: .75rem; opacity: .75; }
