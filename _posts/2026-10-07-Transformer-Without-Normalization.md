@@ -1,3 +1,10 @@
+---
+layout: post
+title: "Transformer Without Normalization"
+date: 2026-10-07
+math: true
+---
+
 ###### - Transformer에서 Normalization 대신 DyT로 대체해도 그 이상의 성능으로 학습 가능!
 
 # 1, 2. Introduction/Background
@@ -7,9 +14,9 @@ Normalization layer는 deep neural network의 학습을 안정화하고 converge
 
 ###### 1. Layer Normalization
 
-![[Pasted image 20261001231154.png]]
+![Pasted image 20261001231154]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261001231154.png' | relative_url }})
 
-![[Pasted image 20261003144441.png]]
+![Pasted image 20261003144441]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261003144441.png' | relative_url }})
 - mu, sigma: 해당 token의 feature들에서 계산한 mean과 variance
 - gamma, beta: channel마다 학습하는 scale과 shift
 - epsilon: 수치적 안정성을 위한 작은 상수
@@ -33,7 +40,7 @@ RMS Normalization은 Layer Normalization에서 Mean Centrering 과정을 빼고 
 
 # 3. What does Normalization do? 
 ###### - Normalization Layer는 값을 어떻게 바꾸는가?
-![[Pasted image 20261001231723.png]]
+![Pasted image 20261001231723]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261001231723.png' | relative_url }})
 > Figure 2. ViT, Wav2vecc, Dit에서 추출한 LN의 입출력(Normalization Layer의 파라미터 적용 전, 즉 $N(0,1)$의 출력)
 
 - 초기 Layer --> 입출력이 선형관계에 가까움 
@@ -43,12 +50,12 @@ RMS Normalization은 Layer Normalization에서 Mean Centrering 과정을 빼고 
 
 실험 결과, 99%의 점들은 선형적인 구간에서 나타나고 나머지 값들은 Extreme Value(절대값이 큰 값)로 상대적으로 강한 압축이 적용됨
 
-![[Pasted image 20261001232230.png]]
+![Pasted image 20261001232230]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261001232230.png' | relative_url }})
 > Figure 3. alpha에 따른 $tanh(ax)$의 그래프
 
 $tanh(ax)$의 alpha 값에 따라 중심부의 기울기와 압축의 범위가 달라짐. 이는 $tanh(ax)$로 Figure 2. 에서 나타난 Activation을 표현할 수 있음을 나타냄 
 
-![[Pasted image 20261001232214.png]]
+![Pasted image 20261001232214]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261001232214.png' | relative_url }})
 > Figure 4. 왼쪽 두 개 그림은 토큰 단위, 오른쪽 두 개는 채널 단위로 점을 칠한 것
 
 1. Token 단위 
@@ -58,8 +65,8 @@ $tanh(ax)$의 alpha 값에 따라 중심부의 기울기와 압축의 범위가 
 	- Extreme Activation에 특정 Channel에 집중되어 나타남
 
 ###### - 그러면 단순한 아핀 변환으로 대체할 수 있는 거 아닌가?
-![[Pasted image 20261003153133.png]]
-결과적으로 **Normalization은 일종의 선형 변환**처럼 볼 수 있기 때문에 ![[Pasted image 20261003163015.png]]와 같은 아핀 변환으로 대체할 수 있을 것처럼 보임. 
+![Pasted image 20261003153133]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261003153133.png' | relative_url }})
+결과적으로 **Normalization은 일종의 선형 변환**처럼 볼 수 있기 때문에 ![Pasted image 20261003163015]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261003163015.png' | relative_url }})와 같은 아핀 변환으로 대체할 수 있을 것처럼 보임. 
 
 하지만 저자들은 아핀 변환만으로 중심부에서의 선형적 값의 변환과 Extreme Activation에 대한 강한 압축을 하는 방식을 inductive하게 학습하는 것에는 한계가 있다고 봄 
 - Why?(논문 외의 내용)
@@ -71,14 +78,14 @@ $tanh(ax)$의 alpha 값에 따라 중심부의 기울기와 압축의 범위가 
 
 +) 본 논문에서 Normalizaiton은 일종의 선형 변환이라고 표현했는데 이는 좀 조심히 볼 필요가 있음. 
 - Token 기준으로 Normaliztion Layer가 값을 선형적으로 변환한다는 뜻이지, Shifting과 Scaling의 규모는 token마다 다르기 때문에 Batch 전체로 봤을 때 비선형적임 (그림에서 S자로 나타남)
-- Normalization 식을 일반화 하면 ![[Pasted image 20261003172712.png]]와 같음. 때문에 'Adaptive Affine Transformation'라고 논문에서 표현한 Layer는 사실상 비선형성을 가짐 
+- Normalization 식을 일반화 하면 ![Pasted image 20261003172712]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261003172712.png' | relative_url }})와 같음. 때문에 'Adaptive Affine Transformation'라고 논문에서 표현한 Layer는 사실상 비선형성을 가짐 
 
 이를 해석하면, 정규화를 단순히 “평균 0, 분산 1을 만드는 연산”으로 보는 데서 한발 더 나아가 **1. 보통 값은 Scaling만하고 2. Extreme 값은 크게 압축하는 연산**으로 바라본 것임.
 
 
 # 4. Dynamic Tanh(DyT)
 Normalization Layer를 대체하는 DyT Layer 제시 
-![[Pasted image 20261003233219.png]]
+![Pasted image 20261003233219]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261003233219.png' | relative_url }})
 기존 Normalization이 있던 위치에 DyT를 넣으며 FFN의 Activation인 GELU는 유지함. 
 ###### - 수식의 특징
 - **입력값이 작을 때**: $\tanh(\alpha x)\approx\alpha x$이므로 선형 변환에 가까움 
@@ -87,24 +94,24 @@ Normalization Layer를 대체하는 DyT Layer 제시
 
 
 # 5. Experiments
-![[Pasted image 20261004123715.png]]
+![Pasted image 20261004123715]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261004123715.png' | relative_url }})
 > Figure 5. LN과 DyT의 loss 곡선이 유사한 형태를 띄는 것으로 보아 유사한 dynamic을 학습한다고 할 수 있음 
 
-![[Pasted image 20261004123944.png|647]]
+![Pasted image 20261004123944]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261004123944.png' | relative_url }}){: width="647" }
 > Table 1. Supervised vision 모델에서 DyT가 LN 보다 다양한 모델에서 비슷하거나 살짝 더 성능이 좋음 
 
-![[Pasted image 20261004130434.png]]
+![Pasted image 20261004130434]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261004130434.png' | relative_url }})
 > Table 2. Self-supervised vison 모델에서도 성능 비슷하게 나타남
 
-![[Pasted image 20261004130328.png]]
+![Pasted image 20261004130328]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261004130328.png' | relative_url }})
 > Table 3. Diffusion 모델에서도 성능 비슷하게 나타남
 
 논문에서 말하고자 하는 것은 'DyT가 LN보다 좋다'가 아니라 '기존 LN과 비슷한 성능을 낸다'임
 
-![[Pasted image 20261004131544.png]]
+![Pasted image 20261004131544]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261004131544.png' | relative_url }})
 > Figure 6. LLM Pre-training에서도 RMS Norm과 비슷한 Loss 곡선을 그림
 
-![[Pasted image 20261004131726.png]]
+![Pasted image 20261004131726]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261004131726.png' | relative_url }})
 > Table 4. Zero-shot task 수행 결과도 유사한 Accuracy를 띔
 
 이 외에도 Self-supervised Speach 모델(Table 5.)이나 다른 DNA Classification 모델에서도 비슷한 학습 양상을 띔
@@ -112,7 +119,7 @@ Normalization Layer를 대체하는 DyT Layer 제시
 # 6. Analysis
 ###### - Why tanh?
 
-![[Pasted image 20261004132322.png]]
+![Pasted image 20261004132322]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261004132322.png' | relative_url }})
 > Table 7. LN의 대체로 위와 같은 함수를 사용한 결과, 단순 Scaling만 하는 Identity 함수는 발산하고 나머지는 안정적으로 학습됨 
 
 Saturate Function(포화 함수)는 안정적으로 학습된 반면, 단순 Scaling만 하는 Identity 함수는 발산함. Saturate Function은 Extreme value를 크게 제한하는 역할을 할 수 있지만 Identity 함수는 Scaling만으로 그 역할을 하지 못해 발산하게 됨. 
@@ -120,16 +127,16 @@ Saturate Function(포화 함수)는 안정적으로 학습된 반면, 단순 Sca
 즉, 
 > **해당 학습 조건에서는 Scaling만으로 부족하며 비선형적 압축이 중요한 역할을 함.**
 
-![[Pasted image 20261004134924.png|382]]
+![Pasted image 20261004134924]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261004134924.png' | relative_url }}){: width="382" }
 > Figure 7. 각종 함수 중에서도 $tanh$가 가장 좋은 이유는 Smoothnes와 Zero-Centering이라고 추측함(확정된 설명은 아님)
 
 ###### - Why tanh(ax)?
-![[Pasted image 20261004133745.png]]
+![Pasted image 20261004133745]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261004133745.png' | relative_url }})
 > Table 8. 각종 함수에서 $\alpha$를 제거 했을 때 Accuracy가 떨어짐
 
 $\alpha$는 Learnable Scaler 값으로 **'어느 입력 범위에서 압축을 시작할 것인가?'** 를 결정하는 중요한 요소임. $\alpha$가 클수록 압축하는 입력 값의 범위가 넓어져 분산이 큰 입력 값에 대해 큰 $\alpha$를 학습하게 되어 크게 압축함. 
 
-![[Pasted image 20261004135404.png]]
+![Pasted image 20261004135404]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261004135404.png' | relative_url }})
 > Figure 8. 왼쪽: $\alpha$가 LN의 1/std값과 유사한 변화 양상과 유사한 값을 띄는 것을 알 수 있음. 오른쪽: 학습이 끝난 $\alpha$와 1/std 값이 정확하게 일치하는 것은 아니지만 비례관계를 띄고 있는 것을 확인할 수 있음
 
 $\alpha$가 1/std와 관련된 값을 갖는다는 실험결과를 통해 **$\alpha$가 통계량의 계산 없이 Normaliztion의 Scaling의 역할을 부분적으로 수행**한다고 해석함. 그렇다고 두 함수가 동일한 Normalization 역할을 수행한다고 할 수는 없음. 
@@ -140,13 +147,13 @@ $\alpha$가 1/std와 관련된 값을 갖는다는 실험결과를 통해 **$\al
 
 
 ###### - In Non-LLM Task
-![[Pasted image 20261004142527.png]]
+![Pasted image 20261004142527]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261004142527.png' | relative_url }})
 > Figure 9. $\alpha$의 초기 값에 따른 Non-LLM task의 Accuracy의 변화. 
 
 대부분의 Non-LLM Task 모델은 0.2~1.2 사이의 **$\alpha$ 초기 값에 크게 영향을 받지 않음**을 확인할 수 있음. 다만 ViT-large 모델에서 초기 값이 0.6을 넘어갈 때 학습이 제대로 이뤄지지 않았지만, Hyperparameter의 조절을 통해 이를 안정할 수 있었음. 
 
 ###### - In LLM Task
-![[Pasted image 20261004143040.png]]
+![Pasted image 20261004143040]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261004143040.png' | relative_url }})
 > Figure 10. 깊고 넓은 모델에서 $\alpha$ 초기값과 lr이 클수록 학습 실패율이 높아짐. 또한 $\alpha$의 초기값이 0.5일 때 LN과 비슷한 양상을 보임 
 
 결과 분석 
@@ -155,10 +162,10 @@ $\alpha$가 1/std와 관련된 값을 갖는다는 실험결과를 통해 **$\al
 - $\alpha$가 0.5일 떄 LN과 비슷한 양상을 띄고 Figure 9.에서의 결과를 고려해 기본 초기값을 0.5로 설정함 
 	--> 그렇다면 모든 DyT Layer에 대해 $\alpha = 0.5$를 일괄 적용하는게 가장 좋은 방법일까? 아니면 무작정 작게 하는게 좋을까?
 
-![[Pasted image 20261005153458.png]]
+![Pasted image 20261005153458]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261005153458.png' | relative_url }})
 > Figure 11. LLM에서 Attention Block과 그 외 Block의 $\alpha$ 초기값을 달리하여 Pre-training 한 뒤 training loss를 Heatmap으로 나타냄 
 
-![[Pasted image 20261005153653.png]]
+![Pasted image 20261005153653]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261005153653.png' | relative_url }})
 > Table 10. 가장 높은 Accuracy를 갖는 $\alpha$의 초기값의 조합
 
 이러한 결과를 통해 도출할 수 있는 결론은
@@ -172,7 +179,7 @@ $\alpha$가 1/std와 관련된 값을 갖는다는 실험결과를 통해 **$\al
 - Backward Pass: $\alpha(1-tanh\square(\alpha x)$ ($\gamma \, \beta$ 생략)
 이로 인해 한 번 압축된 값은 예측에서(순전파) 제 역할을 하지 못하고, 학습(역전파) 과정에서는 0에 가까운 Gradient를 전달받아 제대로 학습할 수 없음
 
-![[Pasted image 20261005154832.png]]
+![Pasted image 20261005154832]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261005154832.png' | relative_url }})
 > Table 11. 모델의 너비와 깊이에 따른 $\alpha$의 초기값의 양상. 모델의 깊이보다는 너비에 더 민감하게 반응하는 것을 알 수 있음 
 
 이를 통해 저자들은 LLM의 초기 민감성이 매우 큰 너비와 관련이 깊을 수 있다고 함. 
@@ -182,7 +189,7 @@ $\alpha$가 1/std와 관련된 값을 갖는다는 실험결과를 통해 **$\al
 # 8. Related Works
 
 ###### 1. Mechanisms of Normalization Layers
-![[Pasted image 20261005161801.png]]
+![Pasted image 20261005161801]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261005161801.png' | relative_url }})
 
 해당 논문은 주로 Batch Normalization을 중심으로 설명함. 본 논문에서는 Layer Normalization을 토큰 단위에서는 Scaling + Mean-centering, Channel 단위에서는 Scaling + Extreme Value 비선형 압축으로 해석함 
 
@@ -198,11 +205,11 @@ initialization·weight 제어·gradient clipping·augmentation·regularization�
 
 # 9. Limitation 
 ###### 1. Layer, RMS Normalization 외의 다른 형태의 Normalization을 대체할 수는 없음 
-![[Pasted image 20261005164401.png]]
+![Pasted image 20261005164401]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261005164401.png' | relative_url }})
 > Table 16. BN의 대체 결과 Accuracy가 크게 하락함 
 
 ###### 2. 구조가 단순한거지 계산이 빠르진 않음 
-![[Pasted image 20261005164647.png]]
+![Pasted image 20261005164647]({{ '/assets/img/Trasformer_without_normalization/Pasted%20image%2020261005164647.png' | relative_url }})
 > Table 15. Compile 이후 RMS Normalizaiton이랑 DyT랑 실행 시간이 같음 
 
 tanh 함수도 더 좋은 최적화 기법이 나오지 않을까 연구진이 시발 기대하고 있다네... 니들이 찾으세요
